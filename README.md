@@ -4,6 +4,10 @@ Matching totals can hide lost leads. If 100 forms were submitted on Meta and Hub
 
 `lda` traces each paid lead through three stages by its submission ID: the ad form (source), the automation such as n8n or Zapier (router), and the CRM. For each lead that did not arrive exactly once, it reports the last stage that recorded it. It runs locally on exported files. Nothing is uploaded, and contact details are discarded when the files are read.
 
+**In a browser:** open [`docs/index.html`](docs/index.html) (one self-contained file; save it and it works offline). Drop in the exports, or try a synthetic example. Its content security policy blocks all network requests.
+
+**On the command line:**
+
 ```bash
 npx github:DanielAPayne/lead-delivery-audit example exceptions
 ```
@@ -56,13 +60,16 @@ The CRM side is the hard part. A HubSpot contact is not a receipt: one contact c
 
 ## Status
 
-Version 0.1: the engine and command line. Column names for real Meta, HubSpot, Zapier and n8n exports have not yet been checked against live files; use the column flags if auto-detection misses. Planned: a browser page that uses the same engine, an n8n recipe that carries the Meta lead ID into HubSpot, and export presets.
+Version 0.1: the engine and command line. Column names for real Meta, HubSpot, Zapier and n8n exports have not yet been checked against live files; use the column flags if auto-detection misses. Planned: an n8n recipe that carries the Meta lead ID into HubSpot, and export presets.
 
 ## Development
 
 ```bash
 npm test
+node scripts/build-web.js   # rebuild docs/index.html after changing src/ or web/template.html
 ```
+
+The browser page is generated from `web/template.html` with `src/` and `examples/` inlined; CI fails if it is stale.
 
 Node 20 or later, no dependencies.
 

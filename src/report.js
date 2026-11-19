@@ -1,7 +1,7 @@
 // Render a reconcile() result. Reports contain submission IDs and counts only:
 // no contact details ever reach this layer (see receipts.js).
 
-import { CLASSES, describe } from './engine.js';
+import { CLASSES, describe, plural } from './engine.js';
 
 const esc = s => String(s).replace(/\|/g, '\\|');
 
@@ -47,13 +47,13 @@ export function toMarkdown(result, meta = {}) {
 
   const n = result.notes;
   const lines = [];
-  if (n.sourceWithoutId) lines.push(`${n.sourceWithoutId} source rows had no submission ID and were skipped.`);
-  if (n.sourceDuplicates) lines.push(`${n.sourceDuplicates} source rows repeated an ID already seen and were counted once.`);
-  if (n.sourceOutsideWindow) lines.push(`${n.sourceOutsideWindow} source rows fell outside the window.`);
-  if (n.sourceWithoutTime) lines.push(`${n.sourceWithoutTime} source rows had no usable timestamp and were kept.`);
+  if (n.sourceWithoutId) lines.push(`${plural(n.sourceWithoutId, 'source row', 'source rows')} had no submission ID (skipped).`);
+  if (n.sourceDuplicates) lines.push(`${plural(n.sourceDuplicates, 'source row', 'source rows')} repeated an ID already seen (counted once).`);
+  if (n.sourceOutsideWindow) lines.push(`${plural(n.sourceOutsideWindow, 'source row', 'source rows')} fell outside the window.`);
+  if (n.sourceWithoutTime) lines.push(`${plural(n.sourceWithoutTime, 'source row', 'source rows')} had no usable timestamp (kept).`);
   for (const [stage, st] of Object.entries(meta.inputs ?? {})) {
-    if (st.naiveTimes) lines.push(`${stage}: ${st.naiveTimes} timestamps had no time zone and were read as UTC.`);
-    if (st.invalidTimes) lines.push(`${stage}: ${st.invalidTimes} timestamps could not be parsed.`);
+    if (st.naiveTimes) lines.push(`${stage}: ${plural(st.naiveTimes, 'timestamp', 'timestamps')} had no time zone (read as UTC).`);
+    if (st.invalidTimes) lines.push(`${stage}: ${plural(st.invalidTimes, 'timestamp', 'timestamps')} could not be parsed.`);
   }
   out.push('## Notes', '');
   for (const l of lines) out.push(`- ${l}`);
