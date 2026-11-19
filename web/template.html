@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Lead Delivery Audit</title>
+<meta name="description" content="Match ad-form submissions, automation runs and CRM events by submission ID. Runs entirely in your browser.">
+<style>
+:root{--ink:#182d37;--soft:#4a626b;--paper:#f7f8f4;--card:#fff;--accent:#07584f;--accent-ink:#fff;--line:#c9d5cf;--row:#dce3df;--head:#f0f4f0;--ok-bg:#e7f2ec;--ok:#07584f;--warn-bg:#f7ead9;--warn:#713d11;--bad-bg:#f9e1dc;--bad:#8a2414;--focus:#e6a348}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#e3ebe7;--soft:#a3b4ad;--paper:#111a1d;--card:#18242a;--accent:#5cc3b2;--accent-ink:#0c1b19;--line:#2f4047;--row:#263439;--head:#1f2d33;--ok-bg:#163a33;--ok:#8fe0d0;--warn-bg:#3a2c18;--warn:#f0c48a;--bad-bg:#40201b;--bad:#f3a596}}
+:root[data-theme="dark"]{--ink:#e3ebe7;--soft:#a3b4ad;--paper:#111a1d;--card:#18242a;--accent:#5cc3b2;--accent-ink:#0c1b19;--line:#2f4047;--row:#263439;--head:#1f2d33;--ok-bg:#163a33;--ok:#8fe0d0;--warn-bg:#3a2c18;--warn:#f0c48a;--bad-bg:#40201b;--bad:#f3a596}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+@media(min-width:700px){.wrap{padding:0 32px}}
+header{padding:28px 0 18px;border-bottom:1px solid var(--line)}
+h1,h2{font-family:Georgia,"Source Serif 4",serif;font-weight:500;letter-spacing:-.02em;line-height:1.1;margin:0}
+h1{font-size:clamp(32px,6vw,52px);margin-bottom:8px}
+h2{font-size:clamp(22px,3.5vw,30px);margin-bottom:10px}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem;max-width:760px}
+.sub,.fine{color:var(--soft)}.fine{font-size:.88rem}
+a{color:var(--accent);text-underline-offset:3px}
+section{padding:24px 0;border-bottom:1px solid var(--line)}
+.privacy{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:4px;background:var(--ok-bg);color:var(--ok);font-size:.9rem}
+.examples{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+button{font:inherit;font-size:.92rem;border-radius:6px;border:1px solid var(--line);padding:7px 13px;background:var(--card);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,.drop:focus-within{outline:3px solid var(--focus);outline-offset:2px}
+.inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:820px){.inputs{grid-template-columns:1fr}}
+.drop{background:var(--card);border:1.5px dashed var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.drop.over{border-color:var(--accent);background:var(--ok-bg)}
+.drop.loaded{border-style:solid}
+.drop h3{margin:0;font-size:1rem}
+.drop .what{font-size:.86rem;color:var(--soft);margin:0}
+.file{font-size:.86rem;overflow-wrap:anywhere}
+.drop label{font-size:.84rem;color:var(--soft);display:flex;flex-direction:column;gap:3px}
+select,input[type=date]{font:inherit;font-size:.9rem;padding:5px 7px;border:1px solid var(--line);border-radius:5px;background:var(--paper);color:var(--ink);max-width:100%}
+input[type=file]{font-size:.85rem;max-width:100%;color:var(--soft)}
+.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-top:16px}
+.controls label{font-size:.84rem;color:var(--soft);display:flex;flex-direction:column;gap:3px}
+.error{margin-top:12px;padding:9px 12px;border-radius:5px;background:var(--bad-bg);color:var(--bad)}
+.verdict{padding:11px 14px;border-radius:6px;margin:4px 0 16px}
+.verdict.clean{background:var(--ok-bg);color:var(--ok)}
+.verdict.exceptions{background:var(--bad-bg);color:var(--bad)}
+.verdict.incomplete{background:var(--warn-bg);color:var(--warn)}
+.counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 18px}
+@media(max-width:640px){.counts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.counts div{border-top:2px solid var(--line);padding-top:6px;min-width:0}
+.counts dt{color:var(--soft);font-size:.82rem}
+.counts dd{margin:0;font-size:clamp(24px,4vw,34px);font-weight:650;font-variant-numeric:tabular-nums;line-height:1.2}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin:6px 0 12px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--row);vertical-align:top}
+th{background:var(--head);color:var(--soft);font-weight:650}
+td.id{font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.downloads{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+ul.notes{padding-left:1.2em;margin:6px 0}
+.crmonly{font-family:ui-monospace,Menlo,monospace;font-size:.85rem;overflow-wrap:anywhere}
+footer{padding:16px 0 32px;color:var(--soft);font-size:.86rem}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Lead Delivery Audit</h1>
+  <p class="lede">Matching totals can hide lost leads. Load the ad-form export, the automation's run log and the CRM export, and every submission is traced by its ID to the last step that recorded it.</p>
+  <span class="privacy">Files are read in this page only. Nothing is uploaded, and only ID and time columns are used.</span>
+  <div class="examples" role="group" aria-label="Load a synthetic example">
+    <span class="sub">Try a synthetic example:</span>
+    <button type="button" data-example="exceptions">Missing and repeated IDs</button>
+    <button type="button" data-example="healthy">Every ID arrives</button>
+    <button type="button" data-example="incomplete">Some IDs unavailable</button>
+  </div>
+</div></header>
+
+<main class="wrap">
+<section aria-labelledby="inputs-h">
+  <h2 id="inputs-h">Your exports</h2>
+  <p class="sub">CSV, TSV or JSON Lines. Drop a file on a box or choose one. Check the ID column each file should be matched on.</p>
+  <div class="inputs">
+    <div class="drop" data-stage="source">
+      <h3>1. Source</h3>
+      <p class="what">Ad-form submissions, for example a Meta Leads Center download.</p>
+      <input type="file" accept=".csv,.tsv,.txt,.jsonl" aria-label="Source export file">
+      <div class="file" aria-live="polite"></div>
+      <label hidden>Submission ID column<select data-role="id"></select></label>
+      <label hidden>Time column<select data-role="time"></select></label>
+    </div>
+    <div class="drop" data-stage="router">
+      <h3>2. Router <span class="sub">(optional)</span></h3>
+      <p class="what">Automation runs from n8n, Zapier or Make. Needed to locate a break.</p>
+      <input type="file" accept=".csv,.tsv,.txt,.jsonl" aria-label="Router export file">
+      <div class="file" aria-live="polite"></div>
+      <label hidden>Submission ID column<select data-role="id"></select></label>
+    </div>
+    <div class="drop" data-stage="crm">
+      <h3>3. CRM</h3>
+      <p class="what">CRM rows that carry the original submission ID, such as a HubSpot export.</p>
+      <input type="file" accept=".csv,.tsv,.txt,.jsonl" aria-label="CRM export file">
+      <div class="file" aria-live="polite"></div>
+      <label hidden>Submission ID column<select data-role="id"></select></label>
+    </div>
+  </div>
+  <div class="controls">
+    <label>Source submitted from<input type="date" id="from"></label>
+    <label>Before<input type="date" id="to"></label>
+    <button type="button" class="primary" id="run" disabled>Run audit</button>
+    <button type="button" id="clear">Clear</button>
+  </div>
+  <div class="error" id="error" role="alert" hidden></div>
+</section>
+
+<section id="results" aria-labelledby="results-h" hidden>
+  <h2 id="results-h">Result</h2>
+  <div aria-live="polite">
+    <p class="verdict" id="verdict"></p>
+    <dl class="counts">
+      <div><dt>Source submissions</dt><dd id="c-source"></dd></div>
+      <div><dt>CRM rows</dt><dd id="c-crm"></dd></div>
+      <div><dt>Matched in CRM</dt><dd id="c-matched"></dd></div>
+      <div><dt>Missing</dt><dd id="c-missing"></dd></div>
+      <div><dt>Extra CRM rows</dt><dd id="c-extra"></dd></div>
+      <div><dt>Unresolved</dt><dd id="c-unresolved"></dd></div>
+      <div><dt>CRM rows without ID</dt><dd id="c-noid"></dd></div>
+      <div><dt>CRM IDs not in source</dt><dd id="c-crmonly"></dd></div>
+    </dl>
+  </div>
+  <div id="exceptions-block">
+    <h3>Exceptions</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Submission ID</th><th>Finding</th><th>Last step</th><th>CRM rows</th><th>Next check</th></tr></thead>
+      <tbody id="exceptions"></tbody>
+    </table></div>
+    <p class="fine" id="exceptions-more" hidden></p>
+  </div>
+  <div id="crmonly-block" hidden>
+    <h3>CRM IDs not in the source export</h3>
+    <p class="fine">These may belong to other forms, fall outside the window, or come from an incomplete source export.</p>
+    <p class="crmonly" id="crmonly"></p>
+  </div>
+  <h3>Notes</h3>
+  <ul class="notes fine" id="notes"></ul>
+  <div class="downloads">
+    <button type="button" id="dl-md">Download report (Markdown)</button>
+    <button type="button" id="dl-json">Download report (JSON)</button>
+  </div>
+</section>
+</main>
+
+<footer class="wrap">
+  <p>Open source: <a href="https://github.com/DanielAPayne/lead-delivery-audit">github.com/DanielAPayne/lead-delivery-audit</a>. The same engine runs as the <code>lda</code> command line tool. This page makes no network requests, enforced by its content security policy; you can save it and use it offline.</p>
+</footer>
+
+<script>
+"use strict";
+/*@ENGINE@*/
+/*@EXAMPLES@*/
+(() => {
+  const $ = id => document.getElementById(id);
+  const zones = Object.fromEntries([...document.querySelectorAll('.drop')].map(z => [z.dataset.stage, z]));
+  const inputs = { source: null, router: null, crm: null };
+  let last = null;
+
+  const showError = msg => { $('error').textContent = msg; $('error').hidden = !msg; };
+  const refresh = () => { $('run').disabled = !(inputs.source && inputs.crm); };
+
+  function fillSelect(select, header, chosen, allowNone) {
+    select.replaceChildren();
+    if (allowNone || !chosen) {
+      const o = new Option(allowNone ? 'None' : 'Choose a column', '');
+      select.add(o);
+    }
+    for (const h of header) select.add(new Option(h, h));
+    select.value = chosen ?? '';
+  }
+
+  function setInput(stage, name, text) {
+    const zone = zones[stage];
+    let info;
+    try { info = readHeader(text); } catch (e) { showError(`${stage}: ${e.message}`); return; }
+    const det = detectColumns(info.header);
+    inputs[stage] = { name, text, format: info.format };
+    const rows = info.format === 'jsonl' ? text.split(/\r?\n/).filter(l => l.trim()).length : Math.max(0, parseRows(text).length - 1);
+    zone.querySelector('.file').textContent = `${name}: ${rows} rows, ${info.header.length} columns`;
+    zone.classList.add('loaded');
+    const idSel = zone.querySelector('select[data-role=id]');
+    fillSelect(idSel, info.header, det.idColumn, false);
+    idSel.parentElement.hidden = false;
+    const timeSel = zone.querySelector('select[data-role=time]');
+    if (timeSel) { fillSelect(timeSel, info.header, det.timeColumn, true); timeSel.parentElement.hidden = false; }
+    showError('');
+    $('results').hidden = true;
+    refresh();
+  }
+
+  async function readFile(stage, file) {
+    if (!file) return;
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      setInput(stage, file.name, decodeBytes(bytes));
+    } catch (e) {
+      showError(`${stage}: could not read ${file.name} (${e.message})`);
+    }
+  }
+
+  for (const [stage, zone] of Object.entries(zones)) {
+    const fileInput = zone.querySelector('input[type=file]');
+    fileInput.addEventListener('change', () => readFile(stage, fileInput.files[0]));
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+    zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('over'); readFile(stage, e.dataTransfer.files[0]); });
+  }
+
+  const dateValue = id => $(id).value ? new Date(`${$(id).value}T00:00:00Z`) : undefined;
+
+  function load(stage) {
+    const inp = inputs[stage];
+    if (!inp) return null;
+    const zone = zones[stage];
+    const idColumn = zone.querySelector('select[data-role=id]').value;
+    if (!idColumn) throw new Error(`${stage}: choose the submission ID column`);
+    const timeSel = zone.querySelector('select[data-role=time]');
+    return loadReceipts(inp.text, { label: stage, format: inp.format, idColumn, timeColumn: timeSel ? (timeSel.value || undefined) : undefined });
+  }
+
+  function run() {
+    showError('');
+    try {
+      const src = load('source');
+      const rtr = load('router');
+      const crm = load('crm');
+      const from = dateValue('from');
+      const to = dateValue('to');
+      if (from && to && from >= to) throw new Error('"Source submitted from" must be before "Before".');
+      if ((from || to) && !src.stats.timeColumn) throw new Error('source: choose a time column to use the date filter');
+      const result = reconcile({ source: src.receipts, router: rtr ? rtr.receipts : null, crm: crm.receipts }, { from, to });
+      const meta = { generatedAt: new Date().toISOString(), inputs: { source: src.stats, ...(rtr ? { router: rtr.stats } : {}), crm: crm.stats } };
+      last = { result, meta };
+      render(result, meta);
+    } catch (e) {
+      showError(e.message);
+      $('results').hidden = true;
+    }
+  }
+
+  const MAX_ROWS = 500;
+  function render(result, meta) {
+    const s = result.summary;
+    const v = $('verdict');
+    v.className = `verdict ${result.verdict}`;
+    v.textContent = `${result.verdict === 'clean' ? 'Clean' : result.verdict === 'exceptions' ? 'Exceptions found' : 'Incomplete evidence'}. ${describe(result)}`;
+    const set = (id, n) => { $(id).textContent = n; };
+    set('c-source', s.sourceSubmissions); set('c-crm', s.crmRows); set('c-matched', s.matched); set('c-missing', s.missing);
+    set('c-extra', s.repeatedExtraRows); set('c-unresolved', s.unresolved); set('c-noid', s.crmRowsWithoutId); set('c-crmonly', s.crmOnly);
+
+    const tbody = $('exceptions');
+    tbody.replaceChildren();
+    const shown = result.exceptions.slice(0, MAX_ROWS);
+    if (!shown.length) {
+      const row = tbody.insertRow();
+      const cell = row.insertCell(); cell.colSpan = 5; cell.textContent = 'None. Every source submission has exactly one CRM receipt.';
+    }
+    for (const f of shown) {
+      const c = CLASSES[f.class];
+      const row = tbody.insertRow();
+      const cells = [[f.submissionId, 'id'], [c.label], [f.lastStep], [f.crmRows, 'num'], [c.next]];
+      for (const [value, cls] of cells) { const td = row.insertCell(); td.textContent = value; if (cls) td.className = cls; }
+    }
+    const more = result.exceptions.length - shown.length;
+    $('exceptions-more').hidden = more <= 0;
+    $('exceptions-more').textContent = more > 0 ? `${more} more exceptions are in the downloadable report.` : '';
+
+    $('crmonly-block').hidden = !result.crmOnly.length;
+    const ids = result.crmOnly.slice(0, MAX_ROWS);
+    $('crmonly').textContent = ids.join(', ') + (result.crmOnly.length > ids.length ? ` and ${result.crmOnly.length - ids.length} more` : '');
+
+    const notes = $('notes');
+    notes.replaceChildren();
+    const lines = [];
+    const n = result.notes;
+    if (n.sourceWithoutId) lines.push(`${plural(n.sourceWithoutId, 'source row', 'source rows')} had no submission ID (skipped).`);
+    if (n.sourceDuplicates) lines.push(`${plural(n.sourceDuplicates, 'source row', 'source rows')} repeated an ID already seen (counted once).`);
+    if (n.sourceOutsideWindow) lines.push(`${plural(n.sourceOutsideWindow, 'source row', 'source rows')} fell outside the date filter.`);
+    if (n.sourceWithoutTime) lines.push(`${plural(n.sourceWithoutTime, 'source row', 'source rows')} had no usable timestamp (kept).`);
+    for (const [stage, st] of Object.entries(meta.inputs)) {
+      if (st.naiveTimes) lines.push(`${stage}: ${plural(st.naiveTimes, 'timestamp', 'timestamps')} had no time zone (read as UTC).`);
+      if (st.invalidTimes) lines.push(`${stage}: ${plural(st.invalidTimes, 'timestamp', 'timestamps')} could not be parsed.`);
+    }
+    lines.push('Matching is by submission ID only. A contact record is not a submission receipt.');
+    lines.push('Confirm form scope, excluded leads, reporting delays and export completeness before acting on a gap.');
+    for (const l of lines) { const li = document.createElement('li'); li.textContent = l; notes.append(li); }
+
+    $('results').hidden = false;
+  }
+
+  function download(name, type, text) {
+    const url = URL.createObjectURL(new Blob([text], { type }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  const stamp = () => new Date().toISOString().slice(0, 10);
+  $('dl-md').addEventListener('click', () => last && download(`lead-delivery-audit-${stamp()}.md`, 'text/markdown', toMarkdown(last.result, last.meta)));
+  $('dl-json').addEventListener('click', () => last && download(`lead-delivery-audit-${stamp()}.json`, 'application/json', toJson(last.result, last.meta)));
+
+  $('run').addEventListener('click', run);
+  $('clear').addEventListener('click', () => {
+    for (const [stage, zone] of Object.entries(zones)) {
+      inputs[stage] = null;
+      zone.classList.remove('loaded');
+      zone.querySelector('input[type=file]').value = '';
+      zone.querySelector('.file').textContent = '';
+      for (const sel of zone.querySelectorAll('select')) { sel.replaceChildren(); sel.parentElement.hidden = true; }
+    }
+    $('from').value = ''; $('to').value = '';
+    $('results').hidden = true; showError(''); last = null; refresh();
+  });
+
+  for (const b of document.querySelectorAll('button[data-example]')) {
+    b.addEventListener('click', () => {
+      const ex = EXAMPLES[b.dataset.example];
+      for (const stage of ['source', 'router', 'crm']) setInput(stage, `${b.dataset.example}/${stage}.csv (synthetic)`, ex[stage]);
+      run();
+      $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+})();
+</script>
+</body>
+</html>

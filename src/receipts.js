@@ -27,6 +27,27 @@ function pickColumn(header, wanted, candidates, label) {
   return null;
 }
 
+/** Columns of an export, for column pickers. */
+export function readHeader(text) {
+  if (text.trimStart().startsWith('{')) {
+    const keys = new Set();
+    for (const line of text.split(/\r?\n/).slice(0, 200)) {
+      if (!line.trim()) continue;
+      try { Object.keys(JSON.parse(line)).forEach(k => keys.add(k)); } catch { /* reported at load */ }
+    }
+    return { format: 'jsonl', header: [...keys] };
+  }
+  return { format: 'csv', header: parseCsv(text).header };
+}
+
+/** Auto-detected ID and time columns for a header (null when none match). */
+export function detectColumns(header) {
+  return {
+    idColumn: pickColumn(header, null, ID_COLUMN_CANDIDATES, 'ID'),
+    timeColumn: pickColumn(header, null, TIME_COLUMN_CANDIDATES, 'time'),
+  };
+}
+
 /** Normalize a submission ID. Meta exports prefix lead IDs with "l:"; strip that and whitespace. */
 export function normalizeId(value) {
   if (value === null || value === undefined) return null;

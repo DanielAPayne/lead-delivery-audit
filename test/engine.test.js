@@ -81,5 +81,12 @@ test('window filters source rows: from inclusive, to exclusive', () => {
 
 test('repeated only: sentence names the subject', () => {
   const res = reconcile({ source: [r('a'), r('b')], crm: [r('a'), r('a'), r('b')] });
-  assert.equal(describe(res), '1 source submissions have more than one CRM receipt (1 extra rows).');
+  assert.equal(describe(res), '1 source submission has more than one CRM receipt (1 extra row).');
+});
+
+test('singular wording for counts of one', () => {
+  const res = reconcile({ source: [r('a'), r('b')], crm: [r('b'), r(null)] });
+  assert.equal(describe(res), '1 submission is unresolved: 1 CRM row carries no submission ID, so delivery cannot be determined for them. None can be confirmed missing yet.');
+  const one = reconcile({ source: [r('a')], crm: [r('a')] });
+  assert.equal(describe(one), 'The one source submission has exactly one CRM receipt.');
 });

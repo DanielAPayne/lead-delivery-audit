@@ -92,20 +92,22 @@ export function reconcile({ source, router = null, crm }, window = {}) {
   };
 }
 
+export const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
 /** One-sentence plain-language result. */
 export function describe(result) {
   const s = result.summary;
   if (result.verdict === 'clean') {
-    return `All ${s.sourceSubmissions} source submissions have exactly one CRM receipt.`;
+    return s.sourceSubmissions === 1 ? 'The one source submission has exactly one CRM receipt.' : `All ${s.sourceSubmissions} source submissions have exactly one CRM receipt.`;
   }
   if (result.verdict === 'incomplete') {
-    return `${s.unresolved} submissions are unresolved: ${s.crmRowsWithoutId} CRM rows carry no submission ID, so delivery cannot be determined for them. ${s.minimumMissing ? `At least ${s.minimumMissing} are missing.` : 'None can be confirmed missing yet.'}`;
+    return `${plural(s.unresolved, 'submission is', 'submissions are')} unresolved: ${plural(s.crmRowsWithoutId, 'CRM row carries', 'CRM rows carry')} no submission ID, so delivery cannot be determined for them. ${s.minimumMissing ? `At least ${plural(s.minimumMissing, 'is', 'are')} missing.` : 'None can be confirmed missing yet.'}`;
   }
   const parts = [];
-  if (s.missing) parts.push(`${s.missing} source submissions have no CRM receipt`);
+  if (s.missing) parts.push(`${plural(s.missing, 'source submission has', 'source submissions have')} no CRM receipt`);
   if (s.repeated) {
-    const who = s.missing ? `${s.repeated} others have` : `${s.repeated} source submissions have`;
-    parts.push(`${who} more than one CRM receipt (${s.repeatedExtraRows} extra rows)`);
+    const who = s.missing ? plural(s.repeated, 'other has', 'others have') : plural(s.repeated, 'source submission has', 'source submissions have');
+    parts.push(`${who} more than one CRM receipt (${plural(s.repeatedExtraRows, 'extra row', 'extra rows')})`);
   }
   let text = parts.join('; ') + '.';
   if (s.crmRows === s.sourceSubmissions) text += ' The raw totals agree.';
