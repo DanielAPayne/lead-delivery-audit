@@ -1,0 +1,14 @@
+{
+  "name": "lead-delivery-audit",
+  "version": "0.1.0",
+  "description": "Trace paid leads from the ad form, through the automation, into the CRM by submission ID.",
+  "type": "module",
+  "bin": { "lda": "bin/lda.js" },
+  "files": ["bin", "src", "examples"],
+  "scripts": {
+    "test": "node --test",
+    "examples": "node scripts/make-examples.js"
+  },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}
